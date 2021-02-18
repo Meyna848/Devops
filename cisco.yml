@@ -15,7 +15,7 @@
     ansible_python_interpreter: /usr/bin/python3.6
 
   tasks:
-    - name:  cisco facts
+    - name:  Cisco facts
       ios_facts:
         provider: "{{ provider }}"
         gather_subset:
@@ -35,7 +35,7 @@
         delay_factor: 12
 
 
-    - name: set boot system flash
+    - name: Set boot system flash
       ios_config:
         provider: "{{ provider }}"
         commands:
