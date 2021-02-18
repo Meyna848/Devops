@@ -1,0 +1,65 @@
+---
+- name: Upgrade Cisco Catalyse
+  hosts: cisco
+  connection: local
+  gather_facts: no
+
+  vars:
+    provider:
+      authorize: yes
+      host: "{{ host }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      auth_pass: "{{ password_enable }}"
+    compliant_ios_version: 15.2.2a.E8
+    ansible_python_interpreter: /usr/bin/python3.6
+
+  tasks:
+    - name:  cisco facts
+      ios_facts:
+        provider: "{{ provider }}"
+        gather_subset:
+            - "all"
+    - name: IOS copying 
+      ntc_file_copy:
+        platform: cisco_ios_ssh
+        local_file: "/home/adminsuez/c2960s-universalk9-mz.152-2.E8.bin"
+        host: "{{ host }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+      tags: copy
+      delegate_to: localhost
+
+      vars:
+        ansible_command_timeout: 18000
+        delay_factor: 12
+
+
+    - name: set boot system flash
+      ios_config:
+        provider: "{{ provider }}"
+        commands:
+          - "boot system flash:c2960s-universalk9-mz.152-2.E8.bin"
+
+    - name: Reboot switch
+      ios_command:
+        provider: "{{ provider }}"
+        commands:
+          - "write memory"
+          - "reload in 1\ny"
+
+
+    - name: Wait switch to return
+      wait_for:
+        host: "{{host}}"
+        port: 22
+        delay: 60
+        timeout: 600
+      delegate_to: localhost
+
+    - name: Gather facts for verification
+      ios_facts:
+        provider: "{{ provider }}"
+        gather_subset:
+            - "all"
+
